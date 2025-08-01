@@ -1,7 +1,23 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { authService } from '../services/authService';
 
 const HomePage = () => {
+  const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [formData, setFormData] = useState({
+    userId: '',
+    Password: '',
+  });
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+
+  const handleInputChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+    setError(''); // Clear error when user types
+  };
+  
 
   const handleLoginClick = () => {
     setIsModalOpen(true);
@@ -9,14 +25,58 @@ const HomePage = () => {
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
+    setError('');
+    setSuccess('');
+    setFormData({ userId: '', Password: '' });
   };
 
-  const handleFormSubmit = (e) => {
+  const handleFormSubmit = async (e) => {
     e.preventDefault();
-    
-    // You can add your login logic here, e.g., calling an API
-    console.log("Form submitted");
-    handleCloseModal(); // Close modal after submission for this example
+    setIsLoading(true);
+    setError('');
+    setSuccess('');
+
+    try {
+      const data = await authService.login({
+        userId: formData.userId,
+        Password: formData.Password,
+      });
+
+      if (data.success) {
+        setSuccess(data.message);
+        // Store token in localStorage for future requests
+        if (data.token) {
+          localStorage.setItem('authToken', data.token);
+        }
+        // Store user information for role-based access
+        if (data.user) {
+          localStorage.setItem('userInfo', JSON.stringify(data.user));
+        }
+        
+        // Redirect based on user role
+        setTimeout(() => {
+          handleCloseModal();
+          if (data.user && data.user.role) {
+            if (data.user.role === 'admin') {
+              navigate('/admin');
+            } else if (data.user.role === 'student') {
+              navigate('/student');
+            } else {
+              console.warn('Unknown user role:', data.user.role);
+            }
+          } else {
+            console.error('User role not found in response');
+          }
+        }, 1500);
+      } else {
+        setError(data.message || 'Login failed');
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      setError(error.message);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -49,40 +109,64 @@ const HomePage = () => {
             
             <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">Login</h2>
             
+            {/* Error Message */}
+            {error && (
+              <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+                {error}
+              </div>
+            )}
+            
+            {/* Success Message */}
+            {success && (
+              <div className="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded">
+                {success}
+              </div>
+            )}
+            
             <form onSubmit={handleFormSubmit} className="space-y-4">
               <div className="mb-4">
-                <label htmlFor="loginId" className="block text-gray-700 text-sm font-bold mb-2 text-left">
+                <label htmlFor="userId" className="block text-gray-700 text-sm font-bold mb-2 text-left">
                   Enter Login ID
                 </label>
                 <input 
                   type="text" 
-                  id="loginId" 
-                  name="loginId"
+                  id="userId" 
+                  name="userId"
+                  value={formData.userId}
+                  onChange={handleInputChange}
                   className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                   placeholder="Your Login ID"
                   required 
+                  disabled={isLoading}
                 />
               </div>
               <div className="mb-6">
-                <label htmlFor="password" className="block text-gray-700 text-sm font-bold mb-2 text-left">
+                <label htmlFor="Password" className="block text-gray-700 text-sm font-bold mb-2 text-left">
                   Password
                 </label>
                 <input 
                   type="password" 
-                  id="password" 
-                  name="password"
+                  id="Password" 
+                  name="Password"
+                  value={formData.Password}
+                  onChange={handleInputChange}
                   className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline"
                   placeholder="••••••••••"
                   required 
+                  disabled={isLoading}
                 />
               </div>
               <div className="flex items-center justify-center">
                 <button 
                   type="submit"
-                  
-                  className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg focus:outline-none focus:shadow-outline w-full"
+                  disabled={isLoading}
+                  className={`${
+                    isLoading 
+                      ? 'bg-gray-400 cursor-not-allowed' 
+                      : 'bg-blue-600 hover:bg-blue-700'
+                  } text-white font-bold py-2 px-4 rounded-lg focus:outline-none focus:shadow-outline w-full transition-colors duration-200`}
                 >
-                  Sign In
+                  {isLoading ? 'Signing In...' : 'Sign In'}
                 </button>
               </div>
             </form>
