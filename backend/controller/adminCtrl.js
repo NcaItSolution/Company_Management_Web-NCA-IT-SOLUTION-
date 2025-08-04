@@ -14,21 +14,14 @@ if (!fs.existsSync(uploadsDir)) {
 const generateQRCode = async (req, res) => {
     try {
         const { title, description, expiresInHours = 24 } = req.body;
-        
-        // Get admin user info from token (assuming you have middleware to extract user)
-        const adminUserId = req.user?.userId || 'admin'; // You'll need to implement auth middleware
-        
+        const adminUserId = req.user?.userId || 'admin'; e
         if (!title) {
             return res.status(400).json({
                 success: false,
                 message: 'Title is required'
             });
         }
-
-        // Generate unique session ID
         const sessionId = uuidv4();
-        
-        // Calculate expiration time
         const expiresAt = new Date();
         expiresAt.setHours(expiresAt.getHours() + parseInt(expiresInHours));
 
