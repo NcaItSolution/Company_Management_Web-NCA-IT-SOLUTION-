@@ -5,7 +5,9 @@ const {
     getAttendanceSessions,
     getAttendanceSession,
     updateAttendanceSession,
-    deleteAttendanceSession
+    deleteAttendanceSession,
+    getAllStuent,
+    getAllAdmin
 } = require('../controller/adminCtrl.js');
 const { adminAuth } = require('../middleware/auth.js');
 
@@ -26,5 +28,9 @@ adminRouter.put('/attendance/session/:sessionId', adminAuth, updateAttendanceSes
 
 // DELETE - Delete attendance session and QR code file
 adminRouter.delete('/attendance/session/:sessionId', adminAuth, deleteAttendanceSession);
+
+adminRouter.get('/getAllStudent', adminAuth, getAllStuent);
+
+adminRouter.get('/getAllAdmin', adminAuth, getAllAdmin);
 
 module.exports = adminRouter;

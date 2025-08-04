@@ -1,5 +1,7 @@
 const AttendanceSchema = require('../models/AttendanceSchema.js');
 const QRCode = require('qrcode');
+const LoginCredentialsSchema=require('../models/LoginCredentialsSchema.js')
+
 const { v4: uuidv4 } = require('uuid');
 const fs = require('fs');
 const path = require('path');
@@ -274,10 +276,42 @@ const deleteAttendanceSession = async (req, res) => {
     }
 };
 
+const getAllStuent=async(req,res)=>{
+   try{
+    const student=await LoginCredentialsSchema.find({role:'student'})
+    return res.status(200).json({
+        success:true,
+        student
+    })
+   }catch(e){
+    return res.status(400).json({
+        success:false,
+        message:'something went wrong'
+    })
+   }
+}
+
+const getAllAdmin=async(req,res)=>{
+   try{
+    const student=await LoginCredentialsSchema.find({role:'admin'})
+    return res.status(200).json({
+        success:true,
+        student
+    })
+   }catch(e){
+    return res.status(400).json({
+        success:false,
+        message:'something went wrong'
+    })
+   }
+}
+
 module.exports = {
     generateQRCode,
     getAttendanceSessions,
     getAttendanceSession,
     updateAttendanceSession,
-    deleteAttendanceSession
+    deleteAttendanceSession,
+    getAllStuent,
+    getAllAdmin
 };
