@@ -5,7 +5,9 @@ const {
     getAttendanceSessions,
     getAttendanceSession,
     updateAttendanceSession,
-    deleteAttendanceSession
+    deleteAttendanceSession,
+    getAllStuent,
+    getAllAdmin
 } = require('../controller/adminCtrl.js');
 const { adminAuth } = require('../middleware/auth.js');
 
@@ -18,5 +20,9 @@ adminRouter.get('/attendance/session/:sessionId', adminAuth, getAttendanceSessio
 adminRouter.put('/attendance/session/:sessionId', adminAuth, updateAttendanceSession);
 
 adminRouter.delete('/attendance/session/:sessionId', adminAuth, deleteAttendanceSession);
+
+adminRouter.get('/getAllStudent', adminAuth, getAllStuent);
+
+adminRouter.get('/getAllAdmin', adminAuth, getAllAdmin);
 
 module.exports = adminRouter;
