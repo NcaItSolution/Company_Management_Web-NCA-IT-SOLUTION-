@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { authService } from '../services/authService';
 
 const cardData = [
@@ -23,6 +23,20 @@ const cardData = [
     bgColor: 'from-purple-100 to-purple-200',
     textColor: 'text-purple-800',
     link: '/student/grades',
+  },
+  {
+    title: 'Attendance',
+    description: 'Mark attendance and view your attendance history',
+    bgColor: 'from-pink-100 to-pink-200',
+    textColor: 'text-pink-800',
+    link: '/student/attendance',
+  },
+  {
+    title: 'Scan QR Code',
+    description: 'Quick access to QR code scanner for attendance',
+    bgColor: 'from-indigo-100 to-indigo-200',
+    textColor: 'text-indigo-800',
+    link: '/attendance',
   },
 ];
 
@@ -68,14 +82,14 @@ const StudentHome = () => {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 flex-grow">
             {cardData.map((card, index) => (
-              <div
+              <Link
+                to={card.link}
                 key={index}
-                onClick={() => navigate(card.link)}
-                className={`cursor-pointer bg-gradient-to-br ${card.bgColor} hover:scale-105 transform transition duration-300 rounded-xl p-6 shadow-md hover:shadow-lg flex flex-col justify-between`}
+                className={`bg-gradient-to-br ${card.bgColor} hover:scale-105 transform transition duration-300 rounded-xl p-6 shadow-md hover:shadow-lg flex flex-col justify-between`}
               >
                 <h3 className={`text-xl font-bold mb-2 ${card.textColor}`}>{card.title}</h3>
                 <p className="text-gray-700">{card.description}</p>
-              </div>
+              </Link>
             ))}
           </div>
         </div>

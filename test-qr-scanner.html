@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Scanner Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .qr-code {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .instructions {
+            background: #e8f5e8;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .test-links {
+            margin: 20px 0;
+        }
+        .test-links a {
+            display: inline-block;
+            margin: 5px 10px;
+            padding: 10px 15px;
+            background: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+        .test-links a:hover {
+            background: #0056b3;
+        }
+        #qrcode {
+            margin: 20px auto;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+    <script src="qr-scanner-debug.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>QR Scanner Test Page</h1>
+        
+        <div class="instructions">
+            <h3>📱 How to Test the QR Scanner:</h3>
+            <ol>
+                <li>First, make sure your frontend is running on <code>http://localhost:5173</code></li>
+                <li>Open the QR Scanner page: <a href="http://localhost:5173/attendance" target="_blank">http://localhost:5173/attendance</a></li>
+                <li>Use the QR code below to test camera/file upload scanning</li>
+                <li>Or manually enter the session ID: <strong id="sessionIdDisplay"></strong></li>
+            </ol>
+        </div>
+
+        <div class="qr-code">
+            <h3>Test QR Code</h3>
+            <div id="qrcode"></div>
+            <p><strong>Session ID:</strong> <span id="sessionId"></span></p>
+        </div>
+
+        <div class="test-links">
+            <h3>🔗 Quick Test Links:</h3>
+            <a href="http://localhost:5173/attendance" target="_blank">Open QR Scanner</a>
+            <a href="http://localhost:5173/" target="_blank">Login Page</a>
+            <a href="http://localhost:5173/admin" target="_blank">Admin Dashboard</a>
+            <a href="http://localhost:5173/student" target="_blank">Student Dashboard</a>
+        </div>
+
+        <div class="instructions">
+            <h3>🧪 Testing Steps:</h3>
+            <ol>
+                <li><strong>Run Debug Test:</strong> Open browser console → Run <code>QR_TEST_UTILS.runCompleteTest()</code></li>
+                <li><strong>Camera Test:</strong> Click "Use Camera" and point at the QR code above</li>
+                <li><strong>File Upload Test:</strong> Right-click the QR code → "Save image as" → Upload via "Upload Image"</li>
+                <li><strong>Manual Entry Test:</strong> Copy the session ID and paste in manual entry</li>
+                <li><strong>Generate Real QR:</strong> Login as admin → Generate QR → Test with that QR code</li>
+            </ol>
+        </div>
+
+        <div class="instructions">
+            <h3>🔧 Troubleshooting:</h3>
+            <ul>
+                <li><strong>Camera not working:</strong> Check browser permissions, try HTTPS, or use Firefox/Chrome</li>
+                <li><strong>QR not recognized:</strong> Ensure good lighting and clear QR code</li>
+                <li><strong>Session not found:</strong> Generate a real QR code from admin panel first</li>
+                <li><strong>Login required:</strong> Make sure you're logged in as a student</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // Generate a test session ID
+        const testSessionId = 'test-session-' + Math.random().toString(36).substr(2, 9);
+        
+        // Update display
+        document.getElementById('sessionId').textContent = testSessionId;
+        document.getElementById('sessionIdDisplay').textContent = testSessionId;
+        
+        // Generate QR code with attendance URL
+        const attendanceUrl = `http://localhost:5173/attendance/${testSessionId}`;
+        
+        QRCode.toCanvas(document.getElementById('qrcode'), attendanceUrl, {
+            width: 256,
+            margin: 2,
+            color: {
+                dark: '#000000',
+                light: '#ffffff'
+            }
+        }, function (error) {
+            if (error) {
+                console.error('QR Code generation error:', error);
+                document.getElementById('qrcode').innerHTML = '<p>Error generating QR code</p>';
+            } else {
+                console.log('QR Code generated successfully');
+            }
+        });
+    </script>
+</body>
+</html>

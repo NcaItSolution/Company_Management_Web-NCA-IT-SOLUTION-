@@ -39,11 +39,11 @@ const cardData = [
     link: "/admin/login"
   },
   {
-    title: "Notifications",
-    description: "Send announcements to users",
+    title: "Attendance",
+    description: "Manage attendance for users",
     bgColor: "from-pink-100 to-pink-200",
     textColor: "text-pink-800",
-    link: "/admin/notifications"
+    link: "/admin/attendance"
   },
 ];
 
