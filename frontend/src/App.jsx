@@ -2,6 +2,7 @@ import React from 'react'
 import HomePage from './components/HomePage'
 import GenerateId from './components/AdminPages/GenerateId'
 import AttendanceManagement from './components/AdminPages/AttendanceManagement'
+import UserManagement from './components/AdminPages/UserManagement'
 import StudentAttendance from './components/StudentPages/StudentAttendance'
 import QRScanner from './components/QRScanner'
 import { BrowserRouter, Route, Routes } from "react-router-dom";
@@ -35,6 +36,11 @@ const App = () => {
         <Route path = "/admin/attendance" element={
           <ProtectedRoute requiredRole="admin">
             <AttendanceManagement/>
+          </ProtectedRoute>
+        }></Route>
+        <Route path = "/admin/users" element={
+          <ProtectedRoute requiredRole="admin">
+            <UserManagement/>
           </ProtectedRoute>
         }></Route>
         {/* Student Routes */}

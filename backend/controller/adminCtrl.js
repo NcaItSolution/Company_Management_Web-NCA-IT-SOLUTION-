@@ -16,7 +16,7 @@ if (!fs.existsSync(uploadsDir)) {
 const generateQRCode = async (req, res) => {
     try {
         const { title, description, expiresInHours = 24 } = req.body;
-        const adminUserId = req.user?.userId || 'admin'; e
+        const adminUserId = req.user?.userId || 'admin';
         if (!title) {
             return res.status(400).json({
                 success: false,
