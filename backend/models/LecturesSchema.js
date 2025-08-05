@@ -2,17 +2,14 @@ const mongoose=require('mongoose')
 const {Schema}=mongoose
 
 const LecturesSchema=new Schema({
-    courseName:{
-        type:String
+    title: {
+      type: String,
     },
-    title:{
-        type:String
+    description: {
+      type: String,
     },
-    description:{
-        type:String
-    },
-    lectures:[
-        {
+    lectures: [
+      {
         title: String,
         description: String,
         lecture: {

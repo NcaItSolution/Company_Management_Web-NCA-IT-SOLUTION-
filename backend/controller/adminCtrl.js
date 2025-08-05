@@ -1,6 +1,8 @@
 const AttendanceSchema = require('../models/AttendanceSchema.js');
 const QRCode = require('qrcode');
 const LoginCredentialsSchema=require('../models/LoginCredentialsSchema.js')
+const cloudinary = require('cloudinary');
+const LecturesSchema=require('../models/LecturesSchema.js')
 
 const { v4: uuidv4 } = require('uuid');
 const fs = require('fs');
@@ -457,6 +459,36 @@ const getUserDetails = async (req, res) => {
     }
 };
 
+const createCourse = async (req, res) => {
+  const { title, description } = req.body;
+
+  if (!title || !description) {
+    return res.status(400).json({
+      success: false,
+      message: 'All fields are required',
+    });
+  }
+
+  try {
+    const course = await LecturesSchema.create({ title, description })
+
+    await course.save();
+
+    res.status(201).json({
+      success: true,
+      message: 'Course created successfully',
+      course,
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Internal Server Error',
+      error: error.message,
+    });
+  }
+};
+
 module.exports = {
     generateQRCode,
     getAttendanceSessions,
@@ -467,5 +499,6 @@ module.exports = {
     getAllAdmin,
     updateUserPassword,
     deleteUser,
-    getUserDetails
+    getUserDetails,
+    createCourse
 };

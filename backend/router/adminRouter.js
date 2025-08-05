@@ -10,9 +10,11 @@ const {
     getAllAdmin,
     updateUserPassword,
     deleteUser,
-    getUserDetails
+    getUserDetails,
+    createCourse
 } = require('../controller/adminCtrl.js');
 const { adminAuth } = require('../middleware/auth.js');
+const upload=require('../middleware/multerMiddleware.js')
 
 adminRouter.post('/attendance/generate-qr', adminAuth, generateQRCode);
 
@@ -27,6 +29,8 @@ adminRouter.delete('/attendance/session/:sessionId', adminAuth, deleteAttendance
 adminRouter.get('/getAllStudent', adminAuth, getAllStuent);
 
 adminRouter.get('/getAllAdmin', adminAuth, getAllAdmin);
+
+adminRouter.post('/create-course', adminAuth, createCourse);
 
 // User management routes
 adminRouter.get('/user/:userId', adminAuth, getUserDetails);
