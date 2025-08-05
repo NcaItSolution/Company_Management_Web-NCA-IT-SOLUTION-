@@ -299,6 +299,7 @@ const getAllAdmin=async(req,res)=>{
    }
 }
 
+
 module.exports = {
     generateQRCode,
     getAttendanceSessions,
