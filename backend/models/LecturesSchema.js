@@ -28,7 +28,7 @@ const LecturesSchema=new Schema({
         {
         title: String,
         description: String,
-        assignments: {
+        assignment: {
           public_id: {
             type: String,
             required: true,

@@ -11,7 +11,10 @@ const {
     updateUserPassword,
     deleteUser,
     getUserDetails,
-    createCourse
+    createCourse,
+    addLecture,
+    addAssingment,
+    addNotes
 } = require('../controller/adminCtrl.js');
 const { adminAuth } = require('../middleware/auth.js');
 const upload=require('../middleware/multerMiddleware.js')
@@ -31,6 +34,12 @@ adminRouter.get('/getAllStudent', adminAuth, getAllStuent);
 adminRouter.get('/getAllAdmin', adminAuth, getAllAdmin);
 
 adminRouter.post('/create-course', adminAuth, createCourse);
+
+adminRouter.post('/addLecture/:id', adminAuth,upload.single('lecture'), addLecture);
+
+adminRouter.post('/addAssingments/:id', adminAuth,upload.single('assingment'), addAssingment);
+
+adminRouter.post('/addNotes/:id', adminAuth,upload.single('note'), addNotes);
 
 // User management routes
 adminRouter.get('/user/:userId', adminAuth, getUserDetails);
