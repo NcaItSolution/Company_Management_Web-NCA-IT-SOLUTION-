@@ -300,6 +300,163 @@ const getAllAdmin=async(req,res)=>{
 }
 
 
+// Update user password
+const updateUserPassword = async (req, res) => {
+    try {
+        const { userId } = req.params;
+        const { newPassword, confirmPassword } = req.body;
+
+        // Validation
+        if (!userId) {
+            return res.status(400).json({
+                success: false,
+                message: 'User ID is required'
+            });
+        }
+
+        if (!newPassword || !confirmPassword) {
+            return res.status(400).json({
+                success: false,
+                message: 'New password and confirmation are required'
+            });
+        }
+
+        if (newPassword !== confirmPassword) {
+            return res.status(400).json({
+                success: false,
+                message: 'Passwords do not match'
+            });
+        }
+
+        if (newPassword.length < 6) {
+            return res.status(400).json({
+                success: false,
+                message: 'Password must be at least 6 characters long'
+            });
+        }
+
+        // Find user
+        const user = await LoginCredentialsSchema.findOne({ userId });
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: 'User not found'
+            });
+        }
+
+        // Update password (LoginCredentialsSchema should hash it automatically)
+        user.Password = newPassword;
+        await user.save();
+
+        return res.status(200).json({
+            success: true,
+            message: 'Password updated successfully',
+            data: {
+                userId: user.userId,
+                role: user.role
+            }
+        });
+
+    } catch (error) {
+        console.error('Error updating user password:', error);
+        return res.status(500).json({
+            success: false,
+            message: 'Failed to update password',
+            error: error.message
+        });
+    }
+};
+
+// Delete user
+const deleteUser = async (req, res) => {
+    try {
+        const { userId } = req.params;
+        const adminUserId = req.user?.userId;
+
+        // Validation
+        if (!userId) {
+            return res.status(400).json({
+                success: false,
+                message: 'User ID is required'
+            });
+        }
+
+        // Prevent admin from deleting themselves
+        if (userId === adminUserId) {
+            return res.status(400).json({
+                success: false,
+                message: 'Cannot delete your own account'
+            });
+        }
+
+        // Find and delete user
+        const user = await LoginCredentialsSchema.findOneAndDelete({ userId });
+        
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: 'User not found'
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: `User ${userId} deleted successfully`,
+            data: {
+                deletedUser: {
+                    userId: user.userId,
+                    role: user.role
+                }
+            }
+        });
+
+    } catch (error) {
+        console.error('Error deleting user:', error);
+        return res.status(500).json({
+            success: false,
+            message: 'Failed to delete user',
+            error: error.message
+        });
+    }
+};
+
+// Get user details
+const getUserDetails = async (req, res) => {
+    try {
+        const { userId } = req.params;
+
+        if (!userId) {
+            return res.status(400).json({
+                success: false,
+                message: 'User ID is required'
+            });
+        }
+
+        const user = await LoginCredentialsSchema.findOne({ userId }).select('-Password');
+        
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: 'User not found'
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: 'User details retrieved successfully',
+            data: user
+        });
+
+    } catch (error) {
+        console.error('Error fetching user details:', error);
+        return res.status(500).json({
+            success: false,
+            message: 'Failed to fetch user details',
+            error: error.message
+        });
+    }
+};
+
 module.exports = {
     generateQRCode,
     getAttendanceSessions,
@@ -307,5 +464,8 @@ module.exports = {
     updateAttendanceSession,
     deleteAttendanceSession,
     getAllStuent,
-    getAllAdmin
+    getAllAdmin,
+    updateUserPassword,
+    deleteUser,
+    getUserDetails
 };

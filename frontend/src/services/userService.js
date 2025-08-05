@@ -8,7 +8,7 @@ export const userService = {
       const response = await fetch(`${BASE_URL}/admin/getAllStudent`, {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
         },
         credentials: 'include',
       });
@@ -31,7 +31,7 @@ export const userService = {
       const response = await fetch(`${BASE_URL}/admin/getAllAdmin`, {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
         },
         credentials: 'include',
       });
@@ -55,7 +55,7 @@ export const userService = {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
         },
         credentials: 'include',
         body: JSON.stringify(userData),
@@ -80,7 +80,7 @@ export const userService = {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
         },
         credentials: 'include',
         body: JSON.stringify(userData),
@@ -98,13 +98,38 @@ export const userService = {
     }
   },
 
+  // Update user password
+  async updateUserPassword(userId, passwordData) {
+    try {
+      const response = await fetch(`${BASE_URL}/admin/user/${userId}/password`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+        },
+        credentials: 'include',
+        body: JSON.stringify(passwordData),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Error updating user password:', error);
+      throw error;
+    }
+  },
+
   // Delete user (placeholder for future implementation)
   async deleteUser(userId) {
     try {
-      const response = await fetch(`${BASE_URL}/user/delete/${userId}`, {
+      const response = await fetch(`${BASE_URL}/admin/user/${userId}`, {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
         },
         credentials: 'include',
       });
@@ -117,6 +142,29 @@ export const userService = {
       return data;
     } catch (error) {
       console.error('Error deleting user:', error);
+      throw error;
+    }
+  },
+
+  // Get user details
+  async getUserDetails(userId) {
+    try {
+      const response = await fetch(`${BASE_URL}/admin/user/${userId}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+        },
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Error fetching user details:', error);
       throw error;
     }
   },

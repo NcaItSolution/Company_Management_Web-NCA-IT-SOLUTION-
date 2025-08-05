@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authService } from '../../services/authService';
+import { userService } from '../../services/userService';
 
 const UserManagement = () => {
   const navigate = useNavigate();
@@ -9,6 +10,16 @@ const UserManagement = () => {
   const [admins, setAdmins] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  
+  // Modal states
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [passwordData, setPasswordData] = useState({
+    newPassword: '',
+    confirmPassword: ''
+  });
 
   useEffect(() => {
     fetchUsers();
@@ -18,6 +29,7 @@ const UserManagement = () => {
     try {
       setLoading(true);
       setError('');
+      setSuccess('');
       
       const token = authService.getToken();
       if (!token) {
@@ -25,36 +37,24 @@ const UserManagement = () => {
         return;
       }
 
-      const endpoint = activeTab === 'students' ? 'getAllStudent' : 'getAllAdmin';
-      
-      console.log(`Fetching ${activeTab} from:`, `http://localhost:1234/api/admin/${endpoint}`);
-      
-      const response = await fetch(`http://localhost:1234/api/admin/${endpoint}`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-      });
+      // Debug: Check token existence
+      console.log('Token exists:', !!token);
+      console.log('Token preview:', token ? token.substring(0, 20) + '...' : 'null');
 
-      console.log('Response status:', response.status);
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-      console.log('Response data:', data);
-      
-      if (data.success) {
-        if (activeTab === 'students') {
+      if (activeTab === 'students') {
+        const data = await userService.getAllStudents();
+        if (data.success) {
           setStudents(data.student || []);
         } else {
-          setAdmins(data.student || []); // API returns 'student' field for both
+          setError(data.message || 'Failed to fetch students');
         }
       } else {
-        setError(data.message || `Failed to fetch ${activeTab}`);
+        const data = await userService.getAllAdmins();
+        if (data.success) {
+          setAdmins(data.student || []); // API returns 'student' field for both
+        } else {
+          setError(data.message || 'Failed to fetch administrators');
+        }
       }
     } catch (error) {
       console.error('Error fetching users:', error);
@@ -86,6 +86,94 @@ const UserManagement = () => {
 
   const getUserCount = () => {
     return getUsersToDisplay().length;
+  };
+
+  // Modal handlers
+  const openPasswordModal = (user) => {
+    setSelectedUser(user);
+    setPasswordData({ newPassword: '', confirmPassword: '' });
+    setShowPasswordModal(true);
+    setError('');
+    setSuccess('');
+  };
+
+  const openDeleteModal = (user) => {
+    setSelectedUser(user);
+    setShowDeleteModal(true);
+    setError('');
+    setSuccess('');
+  };
+
+  const closeModals = () => {
+    setShowPasswordModal(false);
+    setShowDeleteModal(false);
+    setSelectedUser(null);
+    setPasswordData({ newPassword: '', confirmPassword: '' });
+    setError('');
+    setSuccess('');
+  };
+
+  // Update password handler
+  const handleUpdatePassword = async (e) => {
+    e.preventDefault();
+    
+    if (!selectedUser) return;
+
+    try {
+      setLoading(true);
+      setError('');
+
+      const result = await userService.updateUserPassword(selectedUser.userId, passwordData);
+      
+      if (result.success) {
+        setSuccess(`Password updated successfully for ${selectedUser.userId}`);
+        closeModals();
+        // Refresh user list
+        setTimeout(() => {
+          fetchUsers();
+          setSuccess('');
+        }, 2000);
+      } else {
+        setError(result.message || 'Failed to update password');
+      }
+    } catch (error) {
+      console.error('Error updating password:', error);
+      setError('Failed to update password. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Delete user handler
+  const handleDeleteUser = async () => {
+    if (!selectedUser) return;
+
+    try {
+      setLoading(true);
+      setError('');
+
+      const result = await userService.deleteUser(selectedUser.userId);
+      
+      if (result.success) {
+        setSuccess(`User ${selectedUser.userId} deleted successfully`);
+        closeModals();
+        // Refresh user list and remove from local state
+        if (activeTab === 'students') {
+          setStudents(students.filter(user => user.userId !== selectedUser.userId));
+        } else {
+          setAdmins(admins.filter(user => user.userId !== selectedUser.userId));
+        }
+        // Clear success message after delay
+        setTimeout(() => setSuccess(''), 3000);
+      } else {
+        setError(result.message || 'Failed to delete user');
+      }
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      setError('Failed to delete user. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -170,6 +258,13 @@ const UserManagement = () => {
             </div>
           )}
 
+          {/* Success Message */}
+          {success && (
+            <div className="bg-green-100 border border-green-400 text-green-700 p-4 rounded-lg mb-6">
+              {success}
+            </div>
+          )}
+
           {/* Loading State */}
           {loading ? (
             <div className="text-center py-8">
@@ -242,19 +337,25 @@ const UserManagement = () => {
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                             <button 
                               className="text-blue-600 hover:text-blue-900 mr-3"
-                              onClick={() => console.log('View user:', user.userId)}
+                              onClick={() => {
+                                // View user details
+                                console.log('View user:', user.userId);
+                              }}
+                              title="View user details"
                             >
                               View
                             </button>
                             <button 
                               className="text-yellow-600 hover:text-yellow-900 mr-3"
-                              onClick={() => console.log('Edit user:', user.userId)}
+                              onClick={() => openPasswordModal(user)}
+                              title="Change password"
                             >
-                              Edit
+                              Edit Password
                             </button>
                             <button 
                               className="text-red-600 hover:text-red-900"
-                              onClick={() => console.log('Delete user:', user.userId)}
+                              onClick={() => openDeleteModal(user)}
+                              title="Delete user"
                             >
                               Delete
                             </button>
@@ -316,6 +417,144 @@ const UserManagement = () => {
           </div>
         </div>
       </div>
+
+      {/* Password Update Modal */}
+      {showPasswordModal && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+          <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div className="mt-3">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-medium text-gray-900">
+                  Update Password for {selectedUser?.userId}
+                </h3>
+                <button
+                  onClick={closeModals}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              
+              <form onSubmit={handleUpdatePassword} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    New Password
+                  </label>
+                  <input
+                    type="password"
+                    value={passwordData.newPassword}
+                    onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
+                    className="w-full border rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                    placeholder="Enter new password"
+                    required
+                    minLength={6}
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Confirm Password
+                  </label>
+                  <input
+                    type="password"
+                    value={passwordData.confirmPassword}
+                    onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
+                    className="w-full border rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                    placeholder="Confirm new password"
+                    required
+                    minLength={6}
+                  />
+                </div>
+
+                {error && (
+                  <div className="text-red-600 text-sm">{error}</div>
+                )}
+
+                <div className="flex justify-end space-x-3 pt-4">
+                  <button
+                    type="button"
+                    onClick={closeModals}
+                    className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded-lg"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg disabled:opacity-50"
+                  >
+                    {loading ? 'Updating...' : 'Update Password'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+          <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div className="mt-3">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-medium text-gray-900">
+                  Delete User
+                </h3>
+                <button
+                  onClick={closeModals}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              
+              <div className="mb-4">
+                <div className="flex items-center mb-4">
+                  <div className="bg-red-100 rounded-full p-3 mr-4">
+                    <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="text-gray-800 font-medium">
+                      Are you sure you want to delete user "{selectedUser?.userId}"?
+                    </p>
+                    <p className="text-gray-600 text-sm mt-1">
+                      This action cannot be undone.
+                    </p>
+                  </div>
+                </div>
+                
+                {error && (
+                  <div className="text-red-600 text-sm mb-4">{error}</div>
+                )}
+              </div>
+
+              <div className="flex justify-end space-x-3">
+                <button
+                  type="button"
+                  onClick={closeModals}
+                  className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded-lg"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDeleteUser}
+                  disabled={loading}
+                  className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg disabled:opacity-50"
+                >
+                  {loading ? 'Deleting...' : 'Delete User'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
