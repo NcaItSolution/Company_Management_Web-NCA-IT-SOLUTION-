@@ -4,58 +4,75 @@ const {Schema}=mongoose
 const LecturesSchema=new Schema({
     title: {
       type: String,
+      required: true,
     },
     description: {
       type: String,
+      required: true,
     },
     lectures: [
       {
-        title: String,
-        description: String,
+        title: {
+          type: String,
+          required: true,
+        },
+        description: {
+          type: String,
+          required: true,
+        },
         lecture: {
           public_id: {
             type: String,
-            required: true,
           },
           secure_url: {
             type: String,
-            required: true,
           },
         },
       },
     ],
     assignments:[
         {
-        title: String,
-        description: String,
+        title: {
+          type: String,
+          required: true,
+        },
+        description: {
+          type: String,
+          required: true,
+        },
         assignment: {
           public_id: {
             type: String,
-            required: true,
           },
           secure_url: {
             type: String,
-            required: true,
           },
         },
       },
     ],
     notes:[
         {
-        title: String,
-        description: String,
+        title: {
+          type: String,
+          required: true,
+        },
+        description: {
+          type: String,
+          required: true,
+        },
         note: {
           public_id: {
             type: String,
-            required: true,
           },
           secure_url: {
             type: String,
-            required: true,
           },
         },
       },
     ],
+}, {
+  timestamps: true,
 })
 
-module.exports=mongoose.model('Lectures',LecturesSchema)
+// Use a different collection name to avoid index conflicts
+module.exports=mongoose.model('Course',LecturesSchema, 'courses')

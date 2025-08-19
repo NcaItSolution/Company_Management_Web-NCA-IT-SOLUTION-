@@ -3,6 +3,8 @@ import HomePage from './components/HomePage'
 import GenerateId from './components/AdminPages/GenerateId'
 import AttendanceManagement from './components/AdminPages/AttendanceManagement'
 import UserManagement from './components/AdminPages/UserManagement'
+import CourseManagement from './components/AdminPages/CourseManagement'
+import CourseDetails from './components/AdminPages/CourseDetails'
 import StudentAttendance from './components/StudentPages/StudentAttendance'
 import QRScanner from './components/QRScanner'
 import { BrowserRouter, Route, Routes } from "react-router-dom";
@@ -41,6 +43,16 @@ const App = () => {
         <Route path = "/admin/users" element={
           <ProtectedRoute requiredRole="admin">
             <UserManagement/>
+          </ProtectedRoute>
+        }></Route>
+        <Route path = "/admin/courses" element={
+          <ProtectedRoute requiredRole="admin">
+            <CourseManagement/>
+          </ProtectedRoute>
+        }></Route>
+        <Route path = "/admin/courses/:courseId" element={
+          <ProtectedRoute requiredRole="admin">
+            <CourseDetails/>
           </ProtectedRoute>
         }></Route>
         {/* Student Routes */}

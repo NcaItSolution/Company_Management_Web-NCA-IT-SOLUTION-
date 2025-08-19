@@ -11,13 +11,21 @@ const {
     updateUserPassword,
     deleteUser,
     getUserDetails,
+    testConnection,
     createCourse,
+    getAllCourses,
+    getCourseById,
+    updateCourse,
+    deleteCourse,
     addLecture,
-    addAssingment,
+    addAssignment,
     addNotes
 } = require('../controller/adminCtrl.js');
 const { adminAuth } = require('../middleware/auth.js');
 const upload=require('../middleware/multerMiddleware.js')
+
+// Test route (no auth required)
+adminRouter.get('/test', testConnection);
 
 adminRouter.post('/attendance/generate-qr', adminAuth, generateQRCode);
 
@@ -35,9 +43,17 @@ adminRouter.get('/getAllAdmin', adminAuth, getAllAdmin);
 
 adminRouter.post('/create-course', adminAuth, createCourse);
 
+adminRouter.get('/courses', adminAuth, getAllCourses);
+
+adminRouter.get('/course/:id', adminAuth, getCourseById);
+
+adminRouter.put('/course/:id', adminAuth, updateCourse);
+
+adminRouter.delete('/course/:id', adminAuth, deleteCourse);
+
 adminRouter.post('/addLecture/:id', adminAuth,upload.single('lecture'), addLecture);
 
-adminRouter.post('/addAssingments/:id', adminAuth,upload.single('assingment'), addAssingment);
+adminRouter.post('/addAssignments/:id', adminAuth,upload.single('assignment'), addAssignment);
 
 adminRouter.post('/addNotes/:id', adminAuth,upload.single('note'), addNotes);
 

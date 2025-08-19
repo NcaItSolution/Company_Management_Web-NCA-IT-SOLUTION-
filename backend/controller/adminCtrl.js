@@ -2,7 +2,7 @@ const AttendanceSchema = require('../models/AttendanceSchema.js');
 const QRCode = require('qrcode');
 const LoginCredentialsSchema=require('../models/LoginCredentialsSchema.js')
 const cloudinary = require('cloudinary');
-const LecturesSchema=require('../models/LecturesSchema.js')
+const Course=require('../models/Course.js')
 
 const { v4: uuidv4 } = require('uuid');
 const fs = require('fs');
@@ -459,28 +459,56 @@ const getUserDetails = async (req, res) => {
     }
 };
 
-const createCourse = async (req, res) => {
-  const { title, description } = req.body;
-
-  if (!title || !description) {
-    return res.status(400).json({
+// Test endpoint (no auth required)
+const testConnection = async (req, res) => {
+  try {
+    res.status(200).json({
+      success: true,
+      message: 'Backend connection successful',
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    res.status(500).json({
       success: false,
-      message: 'All fields are required',
+      message: 'Connection test failed',
+      error: error.message
     });
   }
+};
 
+const createCourse = async (req, res) => {
   try {
-    const course = await LecturesSchema.create({ title, description })
+    console.log('Creating course with data:', req.body);
+    const { title, description } = req.body;
 
+    if (!title || !description) {
+      console.log('Validation failed: missing title or description');
+      return res.status(400).json({
+        success: false,
+        message: 'All fields are required',
+      });
+    }
+
+    const course = new Course({ 
+      title, 
+      description,
+      lectures: [],
+      assignments: [],
+      notes: []
+    });
+
+    console.log('About to save course:', course);
     await course.save();
+    console.log('Course saved successfully:', course._id);
 
     res.status(201).json({
       success: true,
       message: 'Course created successfully',
       course,
     });
-
   } catch (error) {
+    console.error('Error creating course:', error);
+    console.error('Error stack:', error.stack);
     res.status(500).json({
       success: false,
       message: 'Internal Server Error',
@@ -489,205 +517,337 @@ const createCourse = async (req, res) => {
   }
 };
 
- const addLecture =async (req, res) => {
-  const { title, description } = req.body;
-  const { id } = req.params;
-
-  let lectureData = {};
-
-  if (!title || !description) {
-    return next(new AppError('Title and Description are required', 400));
-  }
-
-  const course = await LecturesSchema.findById(id);
-
-  if (!course) {
-    return res.status(400).json({
-        success:false,
-        message:'Invalid course id or course not found'
+// Get all courses
+const getAllCourses = async (req, res) => {
+  try {
+    const courses = await Course.find().sort({ createdAt: -1 });
+    
+    res.status(200).json({
+      success: true,
+      message: 'Courses retrieved successfully',
+      courses,
+    });
+  } catch (error) {
+    console.error('Error fetching courses:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch courses',
+      error: error.message,
     });
   }
-
-  // Run only if user sends a file
-  if (req.file) {
-    try {
-      const result = await cloudinary.v2.uploader.upload(req.file.path, {
-        folder: 'lms', // Save files in a folder named lms
-        chunk_size: 50000000, // 50 mb size
-      });
-
-      // If success
-      if (result) {
-        // Set the public_id and secure_url in array
-        lectureData.public_id = result.public_id;
-        lectureData.secure_url = result.secure_url;
-      }
-
-      // After successful upload remove the file from local storage
-      await fs.promises.rm(`uploads/${req.file.filename}`);
-
-    } catch (error) {
-      // Empty the uploads directory without deleting the uploads directory
-    //   for (const file of await fs.readdir('uploads/')) {
-    //     await fs.unlink(path.join('uploads/', file));
-    //   }
-
-      // Send the error message
-      return res.status(400).json({
-        success:false,
-        message:error.message
-      })
-    }
-  }
-
-  course.lectures.push({
-    title,
-    description,
-    lecture: lectureData,
-  });
-
-  // Save the course object
-  await course.save();
-
-  res.status(200).json({
-    success: true,
-    message: 'Course lecture added successfully',
-    course,
-  });
 };
 
-const addAssingment =async (req, res) => {
-  const { title, description } = req.body;
-  const { id } = req.params;
-
-  let lectureData = {};
-
-  if (!title || !description) {
-    return next(new AppError('Title and Description are required', 400));
-  }
-
-  const course = await LecturesSchema.findById(id);
-
-  if (!course) {
-    return res.status(400).json({
-        success:false,
-        message:'Invalid course id or course not found'
+// Get course by ID
+const getCourseById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const course = await Course.findById(id);
+    
+    if (!course) {
+      return res.status(404).json({
+        success: false,
+        message: 'Course not found',
+      });
+    }
+    
+    res.status(200).json({
+      success: true,
+      message: 'Course retrieved successfully',
+      course,
+    });
+  } catch (error) {
+    console.error('Error fetching course:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch course',
+      error: error.message,
     });
   }
-
-  // Run only if user sends a file
-  if (req.file) {
-    try {
-      const result = await cloudinary.v2.uploader.upload(req.file.path, {
-        folder: 'lms', // Save files in a folder named lms
-        chunk_size: 50000000, // 50 mb size
-      });
-
-      // If success
-      if (result) {
-        // Set the public_id and secure_url in array
-        lectureData.public_id = result.public_id;
-        lectureData.secure_url = result.secure_url;
-      }
-
-      // After successful upload remove the file from local storage
-      await fs.promises.rm(`uploads/${req.file.filename}`);
-
-    } catch (error) {
-      // Empty the uploads directory without deleting the uploads directory
-    //   for (const file of await fs.readdir('uploads/')) {
-    //     await fs.unlink(path.join('uploads/', file));
-    //   }
-
-      // Send the error message
-      return res.status(400).json({
-        success:false,
-        message:error.message
-      })
-    }
-  }
-
-  course.assignments.push({
-    title,
-    description,
-    assignment: lectureData,
-  });
-
-  // Save the course object
-  await course.save();
-
-  res.status(200).json({
-    success: true,
-    message: 'Course assingment added successfully',
-    course,
-  });
 };
 
-const addNotes =async (req, res) => {
-  const { title, description } = req.body;
-  const { id } = req.params;
-
-  let lectureData = {};
-
-  if (!title || !description) {
-    return next(new AppError('Title and Description are required', 400));
-  }
-
-  const course = await LecturesSchema.findById(id);
-
-  if (!course) {
-    return res.status(400).json({
-        success:false,
-        message:'Invalid course id or course not found'
+// Update course
+const updateCourse = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { title, description } = req.body;
+    
+    const course = await Course.findByIdAndUpdate(
+      id,
+      { title, description },
+      { new: true }
+    );
+    
+    if (!course) {
+      return res.status(404).json({
+        success: false,
+        message: 'Course not found',
+      });
+    }
+    
+    res.status(200).json({
+      success: true,
+      message: 'Course updated successfully',
+      course,
+    });
+  } catch (error) {
+    console.error('Error updating course:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update course',
+      error: error.message,
     });
   }
+};
 
-  // Run only if user sends a file
-  if (req.file) {
-    try {
-      const result = await cloudinary.v2.uploader.upload(req.file.path, {
-        folder: 'lms', // Save files in a folder named lms
-        chunk_size: 50000000, // 50 mb size
+// Delete course
+const deleteCourse = async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const course = await Course.findByIdAndDelete(id);
+    
+    if (!course) {
+      return res.status(404).json({
+        success: false,
+        message: 'Course not found',
       });
-
-      // If success
-      if (result) {
-        // Set the public_id and secure_url in array
-        lectureData.public_id = result.public_id;
-        lectureData.secure_url = result.secure_url;
-      }
-
-      // After successful upload remove the file from local storage
-      await fs.promises.rm(`uploads/${req.file.filename}`);
-
-    } catch (error) {
-      // Empty the uploads directory without deleting the uploads directory
-    //   for (const file of await fs.readdir('uploads/')) {
-    //     await fs.unlink(path.join('uploads/', file));
-    //   }
-
-      // Send the error message
-      return res.status(400).json({
-        success:false,
-        message:error.message
-      })
     }
+    
+    res.status(200).json({
+      success: true,
+      message: 'Course deleted successfully',
+    });
+  } catch (error) {
+    console.error('Error deleting course:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to delete course',
+      error: error.message,
+    });
   }
+};
 
-  course.notes.push({
-    title,
-    description,
-    note: lectureData,
-  });
+const addLecture = async (req, res) => {
+  try {
+    const { title, description } = req.body;
+    const { id } = req.params;
 
-  // Save the course object
-  await course.save();
+    let lectureData = {};
 
-  res.status(200).json({
-    success: true,
-    message: 'Course notes added successfully',
-    course,
-  });
+    if (!title || !description) {
+      return res.status(400).json({
+        success: false,
+        message: 'Title and Description are required'
+      });
+    }
+
+    const course = await Course.findById(id);
+
+    if (!course) {
+      return res.status(400).json({
+          success:false,
+          message:'Invalid course id or course not found'
+      });
+    }
+
+    // Run only if user sends a file
+    if (req.file) {
+      try {
+        const result = await cloudinary.v2.uploader.upload(req.file.path, {
+          folder: 'lms', // Save files in a folder named lms
+          chunk_size: 50000000, // 50 mb size
+        });
+
+        // If success
+        if (result) {
+          // Set the public_id and secure_url in array
+          lectureData.public_id = result.public_id;
+          lectureData.secure_url = result.secure_url;
+        }
+
+        // After successful upload remove the file from local storage
+        await fs.promises.rm(`uploads/${req.file.filename}`);
+
+      } catch (error) {
+        // Send the error message
+        return res.status(400).json({
+          success:false,
+          message:error.message
+        })
+      }
+    }
+
+    course.lectures.push({
+      title,
+      description,
+      lecture: lectureData,
+    });
+
+    // Save the course object
+    await course.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'Course lecture added successfully',
+      course,
+    });
+  } catch (error) {
+    console.error('Error adding lecture:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to add lecture',
+      error: error.message
+    });
+  }
+};
+
+const addAssignment = async (req, res) => {
+  try {
+    const { title, description } = req.body;
+    const { id } = req.params;
+
+    let lectureData = {};
+
+    if (!title || !description) {
+      return res.status(400).json({
+        success: false,
+        message: 'Title and Description are required'
+      });
+    }
+
+    const course = await Course.findById(id);
+
+    if (!course) {
+      return res.status(400).json({
+          success:false,
+          message:'Invalid course id or course not found'
+      });
+    }
+
+    // Run only if user sends a file
+    if (req.file) {
+      try {
+        const result = await cloudinary.v2.uploader.upload(req.file.path, {
+          folder: 'lms', // Save files in a folder named lms
+          chunk_size: 50000000, // 50 mb size
+        });
+
+        // If success
+        if (result) {
+          // Set the public_id and secure_url in array
+          lectureData.public_id = result.public_id;
+          lectureData.secure_url = result.secure_url;
+        }
+
+        // After successful upload remove the file from local storage
+        await fs.promises.rm(`uploads/${req.file.filename}`);
+
+      } catch (error) {
+        // Send the error message
+        return res.status(400).json({
+          success:false,
+          message:error.message
+        })
+      }
+    }
+
+    course.assignments.push({
+      title,
+      description,
+      assignment: lectureData,
+    });
+
+    // Save the course object
+    await course.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'Course assignment added successfully',
+      course,
+    });
+  } catch (error) {
+    console.error('Error adding assignment:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to add assignment',
+      error: error.message
+    });
+  }
+};
+
+const addNotes = async (req, res) => {
+  try {
+    const { title, description } = req.body;
+    const { id } = req.params;
+
+    let lectureData = {};
+
+    if (!title || !description) {
+      return res.status(400).json({
+        success: false,
+        message: 'Title and Description are required'
+      });
+    }
+
+    const course = await Course.findById(id);
+
+    if (!course) {
+      return res.status(400).json({
+          success:false,
+          message:'Invalid course id or course not found'
+      });
+    }
+
+    // Run only if user sends a file
+    if (req.file) {
+      try {
+        const result = await cloudinary.v2.uploader.upload(req.file.path, {
+          folder: 'lms', // Save files in a folder named lms
+          chunk_size: 50000000, // 50 mb size
+        });
+
+        // If success
+        if (result) {
+          // Set the public_id and secure_url in array
+          lectureData.public_id = result.public_id;
+          lectureData.secure_url = result.secure_url;
+        }
+
+        // After successful upload remove the file from local storage
+        await fs.promises.rm(`uploads/${req.file.filename}`);
+
+      } catch (error) {
+        // Send the error message
+        return res.status(400).json({
+          success:false,
+          message:error.message
+        })
+      }
+    }
+
+    course.notes.push({
+      title,
+      description,
+      note: lectureData,
+    });
+
+    // Save the course object
+    await course.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'Course notes added successfully',
+      course,
+    });
+  } catch (error) {
+    console.error('Error adding notes:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to add notes',
+      error: error.message
+    });
+  }
 };
 
 module.exports = {
@@ -701,8 +861,13 @@ module.exports = {
     updateUserPassword,
     deleteUser,
     getUserDetails,
+    testConnection,
     createCourse,
+    getAllCourses,
+    getCourseById,
+    updateCourse,
+    deleteCourse,
     addLecture,
-    addAssingment,
+    addAssignment,
     addNotes
 };
