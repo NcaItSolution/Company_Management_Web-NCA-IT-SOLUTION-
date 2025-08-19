@@ -2,7 +2,7 @@ const AttendanceSchema = require('../models/AttendanceSchema.js');
 const QRCode = require('qrcode');
 const LoginCredentialsSchema=require('../models/LoginCredentialsSchema.js')
 const cloudinary = require('cloudinary');
-const Course=require('../models/Course.js')
+const Course=require('../models/LecturesSchema.js')
 
 const { v4: uuidv4 } = require('uuid');
 const fs = require('fs');
