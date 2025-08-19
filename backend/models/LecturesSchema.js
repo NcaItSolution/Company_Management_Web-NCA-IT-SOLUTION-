@@ -75,4 +75,4 @@ const LecturesSchema=new Schema({
 })
 
 // Use a different collection name to avoid index conflicts
-module.exports=mongoose.model('Course',LecturesSchema, 'courses')
+module.exports=mongoose.model('Course',LecturesSchema)

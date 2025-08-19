@@ -19,7 +19,10 @@ const {
     deleteCourse,
     addLecture,
     addAssignment,
-    addNotes
+    addNotes,
+    deleteLecture,
+    deleteAssignment,
+    deleteNote
 } = require('../controller/adminCtrl.js');
 const { adminAuth } = require('../middleware/auth.js');
 const upload=require('../middleware/multerMiddleware.js')
@@ -56,6 +59,12 @@ adminRouter.post('/addLecture/:id', adminAuth,upload.single('lecture'), addLectu
 adminRouter.post('/addAssignments/:id', adminAuth,upload.single('assignment'), addAssignment);
 
 adminRouter.post('/addNotes/:id', adminAuth,upload.single('note'), addNotes);
+
+adminRouter.delete('/deleteLecture/:courseId/:lectureId', adminAuth,deleteLecture)
+
+adminRouter.delete('/deleteAssignment/:courseId/:assignmentId',adminAuth,deleteAssignment)
+
+adminRouter.delete('/deleteNote/:courseId/:noteId',adminAuth,deleteNote)
 
 // User management routes
 adminRouter.get('/user/:userId', adminAuth, getUserDetails);

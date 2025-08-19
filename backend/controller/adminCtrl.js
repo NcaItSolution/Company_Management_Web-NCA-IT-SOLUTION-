@@ -497,9 +497,7 @@ const createCourse = async (req, res) => {
       notes: []
     });
 
-    console.log('About to save course:', course);
     await course.save();
-    console.log('Course saved successfully:', course._id);
 
     res.status(201).json({
       success: true,
@@ -850,6 +848,78 @@ const addNotes = async (req, res) => {
   }
 };
 
+//delete lectures
+const deleteLecture = async (req, res) => {
+  try {
+    const { courseId, lectureId } = req.params;
+
+    // find course by id
+    const course = await Course.findById(courseId);
+    if (!course) {
+      return res.status(404).json({ message: "Course not found" });
+    }
+
+    // filter out the lecture by _id
+    course.lectures = course.lectures.filter(
+      (lecture) => lecture._id.toString() !== lectureId
+    );
+
+    await course.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Lecture deleted successfully",
+      data: course,
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+//delete Assignment
+const deleteAssignment = async (req, res) => {
+  try {
+    const { courseId, assignmentId } = req.params;
+
+    const course = await Course.findById(courseId);
+    if (!course) {
+      return res.status(404).json({ message: "Course not found" });
+    }
+
+    course.assignments = course.assignments.filter(
+      (assignment) => assignment._id.toString() !== assignmentId
+    );
+
+    await course.save();
+
+    res.status(200).json({ success: true, message: "Assignment deleted", data: course });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+//delete Notes
+const deleteNote = async (req, res) => {
+  try {
+    const { courseId, noteId } = req.params;
+
+    const course = await Course.findById(courseId);
+    if (!course) {
+      return res.status(404).json({ message: "Course not found" });
+    }
+
+    course.notes = course.notes.filter(
+      (note) => note._id.toString() !== noteId
+    );
+
+    await course.save();
+
+    res.status(200).json({ success: true, message: "Note deleted", data: course });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
 module.exports = {
     generateQRCode,
     getAttendanceSessions,
@@ -869,5 +939,8 @@ module.exports = {
     deleteCourse,
     addLecture,
     addAssignment,
-    addNotes
+    addNotes,
+    deleteLecture,
+    deleteAssignment,
+    deleteNote
 };
