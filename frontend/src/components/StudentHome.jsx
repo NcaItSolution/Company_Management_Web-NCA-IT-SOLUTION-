@@ -5,7 +5,7 @@ import { authService } from '../services/authService';
 const cardData = [
   {
     title: 'My Courses',
-    description: 'View and manage your enrolled courses',
+    description: 'View your registered course and all its lectures, assignments, and notes',
     bgColor: 'from-green-100 to-green-200',
     textColor: 'text-green-800',
     link: '/student/courses',
