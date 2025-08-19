@@ -4,13 +4,17 @@ const {
     markAttendance,
     getStudentAttendance,
     getAttendanceSessionForStudent,
-    getActiveAttendanceSessions
+    getActiveAttendanceSessions,
+    getMyCourse
 } = require('../controller/studentCtrl.js');
+// GET - Get the student's registered course and its content
+
 const { authenticateToken } = require('../middleware/auth.js');
 
 // Student Attendance Routes
 // All routes require authentication but any authenticated user can access
 
+studentRouter.get('/my-course', authenticateToken, getMyCourse);
 // POST - Mark attendance for a session
 studentRouter.post('/mark-attendance', authenticateToken, markAttendance);
 

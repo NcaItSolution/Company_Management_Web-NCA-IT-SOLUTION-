@@ -6,6 +6,12 @@ import UserManagement from './components/AdminPages/UserManagement'
 import CourseManagement from './components/AdminPages/CourseManagement'
 import CourseDetails from './components/AdminPages/CourseDetails'
 import StudentAttendance from './components/StudentPages/StudentAttendance'
+import StudentCourse from './components/StudentPages/StudentCourse'
+        <Route path = "/student/course" element={
+          <ProtectedRoute requiredRole="student">
+            <StudentCourse/>
+          </ProtectedRoute>
+        }></Route>
 import QRScanner from './components/QRScanner'
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import StudentHome from './components/StudentHome';

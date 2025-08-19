@@ -1,3 +1,44 @@
+// Get the registered course and its content for the logged-in student
+const getMyCourse = async (req, res) => {
+    try {
+        const studentUserId = req.user?.userId;
+        if (!studentUserId) {
+            return res.status(400).json({
+                success: false,
+                message: 'Student ID is required'
+            });
+        }
+        // Find the student and their courseId
+        const student = await LoginCredentialsSchema.findOne({ userId: studentUserId });
+        if (!student || !student.courseId) {
+            return res.status(404).json({
+                success: false,
+                message: 'No course registered for this student.'
+            });
+        }
+        // Find the course and populate all content
+        const Course = require('../models/LecturesSchema.js');
+        const course = await Course.findById(student.courseId);
+        if (!course) {
+            return res.status(404).json({
+                success: false,
+                message: 'Course not found.'
+            });
+        }
+        return res.status(200).json({
+            success: true,
+            message: 'Course retrieved successfully',
+            course
+        });
+    } catch (error) {
+        console.error('Error fetching student course:', error);
+        return res.status(500).json({
+            success: false,
+            message: 'Failed to fetch course',
+            error: error.message
+        });
+    }
+};
 const AttendanceSchema = require('../models/AttendanceSchema.js');
 const LoginCredentialsSchema = require('../models/LoginCredentialsSchema.js');
 
@@ -281,5 +322,6 @@ module.exports = {
     markAttendance,
     getStudentAttendance,
     getAttendanceSessionForStudent,
-    getActiveAttendanceSessions
+    getActiveAttendanceSessions,
+    getMyCourse
 };

@@ -100,6 +100,35 @@ const CourseDetails = () => {
         }
     };
 
+    // Delete handlers
+    const handleDeleteLecture = async (lectureId) => {
+        if (!window.confirm('Are you sure you want to delete this lecture?')) return;
+        try {
+            await courseService.deleteLecture(courseId, lectureId);
+            fetchCourse();
+        } catch (error) {
+            setError(error.message || 'Failed to delete lecture');
+        }
+    };
+    const handleDeleteAssignment = async (assignmentId) => {
+        if (!window.confirm('Are you sure you want to delete this assignment?')) return;
+        try {
+            await courseService.deleteAssignment(courseId, assignmentId);
+            fetchCourse();
+        } catch (error) {
+            setError(error.message || 'Failed to delete assignment');
+        }
+    };
+    const handleDeleteNote = async (noteId) => {
+        if (!window.confirm('Are you sure you want to delete this note?')) return;
+        try {
+            await courseService.deleteNote(courseId, noteId);
+            fetchCourse();
+        } catch (error) {
+            setError(error.message || 'Failed to delete note');
+        }
+    };
+
     const getTabContent = () => {
         if (!course) return null;
 
@@ -131,10 +160,21 @@ const CourseDetails = () => {
         return (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {data.map((item, index) => (
-                    <div key={index} className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg p-6 shadow-md hover:shadow-lg transition duration-200">
-                        <h3 className="text-lg font-bold text-gray-900 mb-2">{item.title}</h3>
+                    <div key={index} className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg p-6 shadow-md hover:shadow-lg transition duration-200 relative">
+                        <h3 className="text-lg font-bold text-gray-900 mb-2 flex items-center justify-between">
+                            {item.title}
+                            {/* Delete icon/button */}
+                            {activeTab === 'lectures' && (
+                                <button title="Delete Lecture" onClick={() => handleDeleteLecture(item._id)} className="ml-2 text-red-500 hover:text-red-700 text-lg font-bold">✖</button>
+                            )}
+                            {activeTab === 'assignments' && (
+                                <button title="Delete Assignment" onClick={() => handleDeleteAssignment(item._id)} className="ml-2 text-red-500 hover:text-red-700 text-lg font-bold">✖</button>
+                            )}
+                            {activeTab === 'notes' && (
+                                <button title="Delete Note" onClick={() => handleDeleteNote(item._id)} className="ml-2 text-red-500 hover:text-red-700 text-lg font-bold">✖</button>
+                            )}
+                        </h3>
                         <p className="text-gray-700 mb-4 line-clamp-3">{item.description}</p>
-                        
                         {item[itemType] && item[itemType].secure_url && (
                             <div className="mb-4">
                                 <a
@@ -147,7 +187,6 @@ const CourseDetails = () => {
                                 </a>
                             </div>
                         )}
-                        
                         <div className="text-sm text-gray-500">
                             Added: {new Date().toLocaleDateString()}
                         </div>

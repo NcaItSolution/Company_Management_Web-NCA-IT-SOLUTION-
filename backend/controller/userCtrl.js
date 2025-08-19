@@ -39,11 +39,11 @@ const CreateAdmin=async(req,res)=>{
 }
 
 const CreateStudent=async(req,res)=>{
-    const {userId,Password}=req.body;
-    if(!userId || !Password){
+    const {userId,Password,courseId}=req.body;
+    if(!userId || !Password || !courseId){
         return res.status(200).json({
             success:false,
-            message:'All fields are required'
+            message:'All fields are required (including course)'
         })
     }
     const exitsUserId=await LoginCredentialsSchema.findOne({userId})
@@ -58,7 +58,8 @@ const CreateStudent=async(req,res)=>{
         const user=await LoginCredentialsSchema.create({
             userId,
             Password,
-            role:'student'
+            role:'student',
+            courseId
         })
         await user.save()
         return res.status(200).json({

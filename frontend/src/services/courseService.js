@@ -1,6 +1,79 @@
+
 const API_BASE_URL = 'http://localhost:1234/api';
 
 class CourseService {
+
+    // Student: Get their registered course and content
+    async getMyCourse() {
+        try {
+            const response = await fetch(`${API_BASE_URL}/student/my-course`, {
+                method: 'GET',
+                headers: this.getAuthHeaders()
+            });
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.message || 'Failed to fetch course');
+            }
+            return data;
+        } catch (error) {
+            console.error('Error fetching student course:', error);
+            throw error;
+        }
+    }
+
+    // Delete lecture
+    async deleteLecture(courseId, lectureId) {
+        try {
+            const response = await fetch(`${API_BASE_URL}/admin/deleteLecture/${courseId}/${lectureId}`, {
+                method: 'DELETE',
+                headers: this.getAuthHeaders()
+            });
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.message || 'Failed to delete lecture');
+            }
+            return data;
+        } catch (error) {
+            console.error('Error deleting lecture:', error);
+            throw error;
+        }
+    }
+
+    // Delete assignment
+    async deleteAssignment(courseId, assignmentId) {
+        try {
+            const response = await fetch(`${API_BASE_URL}/admin/deleteAssignment/${courseId}/${assignmentId}`, {
+                method: 'DELETE',
+                headers: this.getAuthHeaders()
+            });
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.message || 'Failed to delete assignment');
+            }
+            return data;
+        } catch (error) {
+            console.error('Error deleting assignment:', error);
+            throw error;
+        }
+    }
+
+    // Delete note
+    async deleteNote(courseId, noteId) {
+        try {
+            const response = await fetch(`${API_BASE_URL}/admin/deleteNote/${courseId}/${noteId}`, {
+                method: 'DELETE',
+                headers: this.getAuthHeaders()
+            });
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.message || 'Failed to delete note');
+            }
+            return data;
+        } catch (error) {
+            console.error('Error deleting note:', error);
+            throw error;
+        }
+    }
     // Helper method to get auth headers
     getAuthHeaders() {
         const token = localStorage.getItem('authToken');
@@ -191,6 +264,61 @@ class CourseService {
             return data;
         } catch (error) {
             console.error('Error deleting course:', error);
+            throw error;
+        }
+    }
+
+
+    // Delete lecture
+    async deleteLecture(courseId, lectureId) {
+        try {
+            const response = await fetch(`${API_BASE_URL}/admin/deleteLecture/${courseId}/${lectureId}`, {
+                method: 'DELETE',
+                headers: this.getAuthHeaders()
+            });
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.message || 'Failed to delete lecture');
+            }
+            return data;
+        } catch (error) {
+            console.error('Error deleting lecture:', error);
+            throw error;
+        }
+    }
+
+    // Delete assignment
+    async deleteAssignment(courseId, assignmentId) {
+        try {
+            const response = await fetch(`${API_BASE_URL}/admin/deleteAssignment/${courseId}/${assignmentId}`, {
+                method: 'DELETE',
+                headers: this.getAuthHeaders()
+            });
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.message || 'Failed to delete assignment');
+            }
+            return data;
+        } catch (error) {
+            console.error('Error deleting assignment:', error);
+            throw error;
+        }
+    }
+
+    // Delete note
+    async deleteNote(courseId, noteId) {
+        try {
+            const response = await fetch(`${API_BASE_URL}/admin/deleteNote/${courseId}/${noteId}`, {
+                method: 'DELETE',
+                headers: this.getAuthHeaders()
+            });
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.message || 'Failed to delete note');
+            }
+            return data;
+        } catch (error) {
+            console.error('Error deleting note:', error);
             throw error;
         }
     }

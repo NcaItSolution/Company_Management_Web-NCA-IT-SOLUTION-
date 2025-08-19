@@ -1,20 +1,35 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { authService } from "../../services/authService";
+import { courseService } from "../../services/courseService";
 
 const GenerateId = () => {
   const [selectedRole, setSelectedRole] = useState(null);
-  const [formData, setFormData] = useState({ loginId: "", password: "" });
+  const [formData, setFormData] = useState({ loginId: "", password: "", courseId: "" });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [courses, setCourses] = useState([]);
+  const [coursesLoading, setCoursesLoading] = useState(false);
   const navigate = useNavigate();
 
-  const handleRoleSelection = (role) => {
+  const handleRoleSelection = async (role) => {
     setSelectedRole(role);
-    setFormData({ loginId: "", password: "" });
+    setFormData({ loginId: "", password: "", courseId: "" });
     setError('');
     setSuccess('');
+    if (role === 'student') {
+      setCoursesLoading(true);
+      try {
+        const res = await courseService.getAllCourses();
+        setCourses(res.courses || []);
+      } catch (err) {
+        setError('Failed to fetch courses');
+        setCourses([]);
+      } finally {
+        setCoursesLoading(false);
+      }
+    }
   };
 
   const handleInputChange = (e) => {
@@ -41,10 +56,17 @@ const GenerateId = () => {
       return;
     }
 
+    if (selectedRole === 'student' && !formData.courseId) {
+      setError('Please select a course for the student');
+      setIsLoading(false);
+      return;
+    }
+
     try {
       const payload = {
         userId: formData.loginId.trim(),
-        Password: formData.password
+        Password: formData.password,
+        ...(selectedRole === 'student' ? { courseId: formData.courseId } : {})
       };
 
       let data;
@@ -158,6 +180,31 @@ const GenerateId = () => {
                 />
                 <p className="text-sm text-gray-500 mt-1">Minimum 6 characters required</p>
               </div>
+
+              {/* Course selection for student */}
+              {selectedRole === 'student' && (
+                <div>
+                  <label className="block text-gray-700 font-medium mb-2">Assign Course</label>
+                  {coursesLoading ? (
+                    <div className="text-gray-500">Loading courses...</div>
+                  ) : (
+                    <select
+                      name="courseId"
+                      value={formData.courseId}
+                      onChange={handleInputChange}
+                      required
+                      disabled={isLoading}
+                      className="w-full border rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-400 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                    >
+                      <option value="">Select a course</option>
+                      {courses.map((course) => (
+                        <option key={course._id} value={course._id}>{course.title}</option>
+                      ))}
+                    </select>
+                  )}
+                  <p className="text-sm text-gray-500 mt-1">Student will be registered for this course</p>
+                </div>
+              )}
 
               <button
                 type="submit"
