@@ -1,5 +1,5 @@
 // User Management Service
-const BASE_URL = 'http://localhost:1234/api';
+const BASE_URL = 'https://company-management-web-nca-it-solution.onrender.com/api';
 
 export const userService = {
   // Get all students

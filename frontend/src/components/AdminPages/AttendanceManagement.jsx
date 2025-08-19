@@ -346,7 +346,7 @@ const AttendanceManagement = () => {
                         <div className="mt-4 flex justify-center">
                           <div className="text-center">
                             <img
-                              src={`http://localhost:1234${session.qrCodeUrl}`}
+                              src={`https://company-management-web-nca-it-solution.onrender.com${session.qrCodeUrl}`}
                               alt={`QR Code for ${session.title}`}
                               className="w-32 h-32 border rounded-lg"
                             />

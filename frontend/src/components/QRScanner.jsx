@@ -42,7 +42,7 @@ const QRScanner = () => {
       setLoading(true);
       setError(''); // Clear previous errors
       const token = authService.getToken();
-      const response = await fetch(`http://localhost:1234/api/student/attendance-session/${id}`, {
+      const response = await fetch(`https://company-management-web-nca-it-solution.onrender.com/api/student/attendance-session/${id}`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -85,7 +85,7 @@ const QRScanner = () => {
       setError('');
       
       // Mark attendance API call
-      const response = await fetch('http://localhost:1234/api/student/mark-attendance', {
+      const response = await fetch('https://company-management-web-nca-it-solution.onrender.com/api/student/mark-attendance', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
