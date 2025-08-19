@@ -14,7 +14,10 @@ const cookieParser=require('cookie-parser')
 
 database()
 app.use(cors({
-    origin: 'http://localhost:5173', // Vite default port
+    origin: [
+        'http://localhost:5173', // Vite default port
+        'https://nca-it-solution-student-learning-portal.onrender.com'
+    ],
     credentials: true
 }))
 app.use(cookieParser())
