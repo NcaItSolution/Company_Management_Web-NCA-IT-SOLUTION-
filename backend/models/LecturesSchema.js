@@ -10,6 +10,9 @@ const LecturesSchema=new Schema({
       type: String,
       required: true,
     },
+    courseId:{
+       type:String
+    },
     lectures: [
       {
         title: {

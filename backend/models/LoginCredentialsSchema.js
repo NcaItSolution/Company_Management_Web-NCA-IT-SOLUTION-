@@ -16,6 +16,9 @@ const LoginCredentialsSchema=new Schema({
         type:String,
         enum:['admin','student'],
         default:'student'
+    },
+    courseId:{
+        type:String
     }
 },{timestamps:true})
 
